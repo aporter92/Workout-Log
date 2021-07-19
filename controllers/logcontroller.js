@@ -8,13 +8,14 @@ const {LogModel} = require('../models');
 // Create Workout Log
 router.post('/log', validateJWT, async(req, res) =>{
     const { description, definition, result } = req.body.log;
-    const { id } = req.user;
+    const  owner_id  = req.user.id;
     const logEntry = {
         description,
         definition,
         result,
-        owner: id
+        owner_id: owner_id
     }
+    console.log(owner_id)
     try {
         const newLog = await LogModel.create(logEntry);
         res.status(200).json(newLog);
@@ -36,12 +37,12 @@ router.get("/", async (req, res) => {
 });
 
 //Get Logs by User id
-router.get("/log/:id", validateJWT, async (req, res)=>{
-    let { owner_id } = req.params;
+router.get("/find", validateJWT, async (req, res)=>{
+    let  {id} = req.user;
     try {
         const userLogs = await LogModel.findAll({
             where: {
-                owner_id: owner_id
+                owner_id: id
             }
         });
         res.status(200).json(userLogs);
@@ -51,15 +52,15 @@ router.get("/log/:id", validateJWT, async (req, res)=>{
 });
 
 // update a log
-router.put("/log/:id", validateJWT, async (req, res)=>{
-    const {description, definition, result, owner_id } = req.body.log;
-    const LogId = req.params.descriptionId;
+router.put("/update/:id", validateJWT, async (req, res)=>{
+    const {description, definition, result } = req.body.log;
+    const LogId = req.params.id;
     const userId = req.user.id;
 
     const query = {
         where: {
             id: LogId,
-            owner: userId
+            owner_id: userId
         }
     };
 
@@ -67,7 +68,6 @@ router.put("/log/:id", validateJWT, async (req, res)=>{
         description: description,
         definition: definition,
         result: result,
-        owner_id: owner_id
     };
 
     try {
@@ -78,7 +78,7 @@ router.put("/log/:id", validateJWT, async (req, res)=>{
     }
 });
 // Delete a log
-router.delete("/log/:id", validateJWT, async (req, res)=> {
+router.delete("/delete/:id", validateJWT, async (req, res)=> {
     const ownerId = req.user.id;
     const logId = req.params.id;
 
@@ -86,7 +86,7 @@ router.delete("/log/:id", validateJWT, async (req, res)=> {
         const query = {
             where: {
                 id: logId,
-                owner: ownerId
+                owner_id: ownerId
             }
         };
         await LogModel.destroy(query);
